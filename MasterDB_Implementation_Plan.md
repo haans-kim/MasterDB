@@ -5,10 +5,10 @@
 **Phase**: Phase 1 - SQLite 기반 프로토타입
 
 > **설계 참조 문서** (패턴/명세 참조용):
-> - [docs/DATABASE_DESIGN.md](docs/DATABASE_DESIGN.md) - 테이블 구조, ID 체계, 인덱스 전략
-> - [docs/DB_테이블명세서.xlsx](docs/DB_테이블명세서.xlsx) - 테이블별 컬럼 상세 명세
-> - [docs/meta_data.xlsx](docs/meta_data.xlsx) - Company/Survey/Question 메타데이터 정의
-> - [docs/database_schema.md](docs/database_schema.md) - 신규 스키마 상세
+> - [DATABASE_DESIGN.md](DATABASE_DESIGN.md) - 테이블 구조, ID 체계, 인덱스 전략
+> - [DB_테이블명세서.xlsx](DB_테이블명세서.xlsx) - 테이블별 컬럼 상세 명세
+> - [meta_data.xlsx](meta_data.xlsx) - Company/Survey/Question 메타데이터 정의
+> - [database_schema.md](database_schema.md) - 신규 스키마 상세
 
 ---
 

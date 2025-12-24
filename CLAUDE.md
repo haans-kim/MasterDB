@@ -33,9 +33,9 @@ Phase 1: Ontology-based MasterDB [IN PROGRESS]
 | Document | Description |
 |----------|-------------|
 | [MasterDB_Implementation_Plan.md](MasterDB_Implementation_Plan.md) | Main implementation plan |
-| [docs/database_schema.md](docs/database_schema.md) | Database schema (13 tables) |
-| [docs/DATABASE_DESIGN.md](docs/DATABASE_DESIGN.md) | Reference: ID conventions, patterns |
-| [docs/DB_테이블명세서.xlsx](docs/DB_테이블명세서.xlsx) | Reference: Column specifications |
+| [database_schema.md](database_schema.md) | Database schema (13 tables) |
+| [DATABASE_DESIGN.md](DATABASE_DESIGN.md) | Reference: ID conventions, patterns |
+| [DB_테이블명세서.xlsx](DB_테이블명세서.xlsx) | Reference: Column specifications |
 
 ## Database Schema
 
@@ -111,11 +111,6 @@ Example:
 c:\Project\MasterDB\
 ├── data/                          # Source data
 │   └── Survey Meta Data_251224.xlsx
-├── docs/                          # Documentation
-│   ├── database_schema.md         # DB schema
-│   ├── DATABASE_DESIGN.md         # Reference design
-│   ├── DB_테이블명세서.xlsx
-│   └── meta_data.xlsx
 ├── src/                           # Source code
 │   ├── all_category_clustering.py # Phase 0: Clustering
 │   ├── create_verification_excel.py
@@ -125,10 +120,16 @@ c:\Project\MasterDB\
 ├── db/                            # [Phase 1] SQLite database
 │   └── masterdb.sqlite
 ├── results/                       # Output files
+│
+├── database_schema.md             # DB schema (13 tables)
+├── DATABASE_DESIGN.md             # Reference: ID conventions
+├── DB_테이블명세서.xlsx             # Reference: Column specs
+├── meta_data.xlsx                 # Reference: Metadata definitions
+├── MasterDB_Implementation_Plan.md # Implementation plan
+├── CLAUDE.md                      # This file
+│
 ├── all_df_hybrid.pkl              # Cached DataFrame
-├── all_embeddings_hybrid.npy      # Cached embeddings
-├── MasterDB_Implementation_Plan.md
-└── CLAUDE.md
+└── all_embeddings_hybrid.npy      # Cached embeddings
 ```
 
 ## Known Issues
