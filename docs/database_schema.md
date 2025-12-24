@@ -1,8 +1,10 @@
 # MasterDB Database Schema
 
-**버전**: 1.0
+**버전**: 1.1
 **데이터베이스**: SQLite (Phase 1) → PostgreSQL (Phase 2)
 **최종 수정**: 2024-12-24
+
+> **설계 참조**: [DATABASE_DESIGN.md](../DATABASE_DESIGN.md), [DB_테이블명세서.xlsx](../DB_테이블명세서.xlsx)
 
 ---
 
@@ -59,6 +61,18 @@
 | **문항 데이터** | questions, master_questions, embeddings | 문항 및 임베딩 |
 | **온톨로지** | taxonomy, taxonomy_relations, question_tags | 분류 체계 및 태깅 |
 | **척도** | scales, scale_questions | 측정 척도 정의 |
+
+---
+
+## 2.1 ID 체계 (DATABASE_DESIGN.md 참조)
+
+| 테이블 | ID 형식 | 예시 |
+|--------|---------|------|
+| companies | `{회사코드}` | `CJG`, `SKH`, `PARADISE` |
+| surveys | `{회사}-{연도}-{유형}` 또는 `IG{YYMMNN}` | `PARADISE-2025-OD`, `IG200601001` |
+| org_units | `{회사}_{조직경로}` | `CJG_HQ_HR` |
+| questions | `Q_{5자리}` | `Q_00001` ~ `Q_07343` |
+| master_questions | `{대분류}_{4자리}` | `OD_0001`, `LD_0697` |
 
 ---
 
@@ -260,6 +274,13 @@ CREATE TABLE questions (
     source_year INTEGER,                   -- 최초 등장 연도
     reuse_count INTEGER DEFAULT 1,         -- 재사용 횟수
 
+    -- 문항 유형 (DATABASE_DESIGN.md 참조)
+    question_type TEXT DEFAULT 'LIKERT',   -- LIKERT, CHOICE_SINGLE, CHOICE_MULTI, ESSAY
+    scale_min INTEGER DEFAULT 1,           -- 최소 척도값
+    scale_max INTEGER DEFAULT 5,           -- 최대 척도값 (5점, 7점 등)
+    choices TEXT,                          -- JSON: 선택지 (객관식용)
+    is_reverse BOOLEAN DEFAULT FALSE,      -- 역문항 여부
+
     -- 클러스터 정보
     cluster_id INTEGER,                    -- 클러스터 번호 (대분류 내)
     master_question_id TEXT,               -- 소속 대표 문항 ID
@@ -273,6 +294,24 @@ CREATE TABLE questions (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+```
+
+**question_type 유형** (DATABASE_DESIGN.md 참조):
+| 유형 | 설명 | 비고 |
+|------|------|------|
+| LIKERT | 5점/7점 척도 | 기본값 |
+| CHOICE_SINGLE | 단일 선택 | 객관식 |
+| CHOICE_MULTI | 다중 선택 | max_choices 활용 |
+| ESSAY | 주관식/서술형 | 텍스트 응답 |
+
+**choices 예시** (JSON):
+```json
+{
+    "1": "근무 환경에 대한 만족",
+    "2": "조직문화 및 분위기",
+    "3": "상사의 리더십",
+    "4": "충분한 복리후생 지원"
+}
 ```
 
 ---
@@ -598,7 +637,8 @@ CREATE INDEX idx_scale_questions_subscale ON scale_questions(sub_scale);
 | 버전 | 날짜 | 변경 내용 |
 |------|------|----------|
 | 1.0 | 2024-12-24 | 초기 스키마 설계 |
+| 1.1 | 2024-12-24 | DATABASE_DESIGN.md 패턴 반영 (ID 체계, question_type, choices 등) |
 
 ---
 
-*이 문서는 MasterDB_Implementation_Plan.md의 스키마 섹션을 분리한 것입니다.*
+*참조 문서: DATABASE_DESIGN.md, DB_테이블명세서.xlsx, meta_data.xlsx*
