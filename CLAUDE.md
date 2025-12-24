@@ -76,7 +76,7 @@ Phase 1: Ontology-based MasterDB [IN PROGRESS]
 | `all_df_hybrid.pkl` | 7,343 questions with metadata |
 | `all_embeddings_hybrid.npy` | Embeddings (7343 x 768) |
 | `data/Survey Meta Data_251224.xlsx` | Source survey metadata |
-| `results/Master_Questions.xlsx` | 3,274 cluster representatives |
+| `reference/Master_Questions.xlsx` | 3,274 cluster representatives |
 
 ## ID Conventions
 
@@ -119,7 +119,7 @@ c:\Project\MasterDB\
 │   └── tagging/                   # [Phase 1] Auto-tagging
 ├── db/                            # [Phase 1] SQLite database
 │   └── masterdb.sqlite
-├── results/                       # Output files
+├── reference/                     # Phase 0 output files (Excel reports)
 │
 ├── database_schema.md             # DB schema (13 tables)
 ├── DATABASE_DESIGN.md             # Reference: ID conventions
