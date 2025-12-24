@@ -4,7 +4,7 @@
 **데이터베이스**: SQLite (Phase 1) → PostgreSQL (Phase 2)
 **최종 수정**: 2024-12-24
 
-> **설계 참조**: [DATABASE_DESIGN.md](../DATABASE_DESIGN.md), [DB_테이블명세서.xlsx](../DB_테이블명세서.xlsx)
+> **설계 참조**: [DATABASE_DESIGN.md](DATABASE_DESIGN.md), [DB_테이블명세서.xlsx](DB_테이블명세서.xlsx)
 
 ---
 
