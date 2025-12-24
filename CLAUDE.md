@@ -1,86 +1,144 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with this repository.
 
 ## Project Overview
 
-Survey Question Analysis & Master Database project for organizational diagnostics. Clusters and classifies ~7,343 Korean survey questions from 355 surveys (2006-2025) across 120+ client companies into a master question database.
+**MasterDB**: Ontology-based survey question master database for organizational diagnostics.
 
-**Survey Types (대분류)**:
-- OD (조직진단): Organization Diagnosis - 70.5%
-- LD (리더십진단): Leadership Diagnosis - 21.7%
-- MA (다면평가): Multi-source Assessment - 5.0%
-- DD (사외이사평가): Director Diagnosis - 2.9%
+- **7,343** unique survey questions from **355** surveys (2006-2025)
+- **120+** client companies
+- **3,274** master questions (cluster representatives)
+- **Phase 1**: SQLite prototype with Claude Code validation
 
-## Running the Pipeline
-
-Scripts must be run in this order:
-
-```bash
-# 1. Main clustering pipeline - generates embeddings and clusters
-python src/all_category_clustering.py
-
-# 2. Generate verification Excel reports
-python src/create_verification_excel.py
-
-# 3. LLM classification for remaining unclassified items (requires ANTHROPIC_API_KEY)
-python src/llm_classify_unclassified.py
-```
-
-**Environment Setup**:
-- Set `ANTHROPIC_API_KEY` environment variable for LLM classification step
-- Required packages: pandas, numpy, sentence-transformers, scikit-learn, openpyxl, anthropic
-
-## Architecture
-
-### Data Flow
+## Current Status
 
 ```
-data/Survey Meta Data_251224.xlsx
-    ↓
-[all_category_clustering.py]
-  - Applies keyword-based category tags (~79% coverage)
-  - Generates KoSBERT embeddings (jhgan/ko-sroberta-multitask, 768 dimensions)
-  - Performs Agglomerative Clustering (distance_threshold=0.15)
-    ↓
-all_df_hybrid.pkl + all_embeddings_hybrid.npy
-    ↓
-[create_verification_excel.py]
-  - Generates 4-sheet Excel workbook for validation
-    ↓
-results/*.xlsx
-    ↓
-[llm_classify_unclassified.py]
-  - Uses Claude API for unclassified items (batch of 10, 1s rate limit)
-    ↓
-100% classified dataset
+Phase 0: Data Cleansing [COMPLETED]
+├── 17,556 raw questions → 7,343 unique questions
+├── KoSBERT embeddings (768 dimensions)
+├── Agglomerative clustering → 3,274 clusters
+└── Legacy classification labels attached
+
+Phase 1: Ontology-based MasterDB [IN PROGRESS]
+├── SQLite schema design
+├── Data migration (pkl → SQLite)
+├── Taxonomy construction (~150 terms)
+├── Auto-tagging system
+└── Claude Code validation
 ```
 
-### Key Technical Decisions
+## Key Documents
 
-- **Hybrid Embedding**: Combines survey text with classification tags (e.g., `[경영전략] [비전/전략]`) before embedding to improve clustering quality
-- **KoSBERT over TF-IDF**: TF-IDF failed to distinguish semantic meaning (e.g., "비전 이해" vs "비전 적절성" clustered together due to shared keywords like "방식", "존재")
-- **Agglomerative Clustering**: Preferred over K-means for variable cluster sizes and semantic coherence
-- **Centroid-based Representative Selection**: Each cluster's representative question (Question Key) is the item closest to cluster centroid
+| Document | Description |
+|----------|-------------|
+| [MasterDB_Implementation_Plan.md](MasterDB_Implementation_Plan.md) | Main implementation plan |
+| [docs/database_schema.md](docs/database_schema.md) | Database schema (13 tables) |
+| [docs/DATABASE_DESIGN.md](docs/DATABASE_DESIGN.md) | Reference: ID conventions, patterns |
+| [docs/DB_테이블명세서.xlsx](docs/DB_테이블명세서.xlsx) | Reference: Column specifications |
 
-### Classification Hierarchy
+## Database Schema
 
 ```
-대분류 (Major Category: OD/LD/MA/DD)
-  └── 중분류 (Mid Category: e.g., 경영전략, 리더십, 인사제도)
-      └── 소분류 (Sub Category: e.g., 비전/전략, 동기부여)
+┌─────────────────────────────────────────────────────────┐
+│  Operational     │  Questions      │  Ontology          │
+├──────────────────┼─────────────────┼────────────────────┤
+│  companies (120) │  questions      │  taxonomy (~150)   │
+│  surveys (355)   │  (7,343)        │  taxonomy_relations│
+│  org_units       │  master_        │  question_tags     │
+│  org_unit_surveys│  questions      │  scales            │
+│  survey_questions│  (3,274)        │  scale_questions   │
+│                  │  embeddings     │                    │
+└──────────────────┴─────────────────┴────────────────────┘
+```
+
+## Survey Types (대분류)
+
+| Code | Name | Count | Clusters |
+|------|------|-------|----------|
+| OD | 조직진단 (Organization Diagnosis) | 5,179 | 2,199 |
+| LD | 리더십진단 (Leadership Diagnosis) | 1,590 | 697 |
+| MA | 다면평가 (Multi-source Assessment) | 364 | 275 |
+| DD | 사외이사평가 (Director Diagnosis) | 210 | 103 |
+
+## Technical Stack
+
+- **Database**: SQLite (Phase 1) → PostgreSQL (Phase 2)
+- **Embeddings**: KoSBERT (`jhgan/ko-sroberta-multitask`, 768 dimensions)
+- **Clustering**: Agglomerative (distance_threshold=0.15, cosine)
+- **Language**: Python 3.x
+- **Key packages**: pandas, numpy, sentence-transformers, scikit-learn, sqlite3
+
+## Data Assets
+
+| File | Description |
+|------|-------------|
+| `all_df_hybrid.pkl` | 7,343 questions with metadata |
+| `all_embeddings_hybrid.npy` | Embeddings (7343 x 768) |
+| `data/Survey Meta Data_251224.xlsx` | Source survey metadata |
+| `results/Master_Questions.xlsx` | 3,274 cluster representatives |
+
+## ID Conventions
+
+| Table | Format | Example |
+|-------|--------|---------|
+| companies | `{CODE}` | `CJG`, `SKH` |
+| surveys | `{COMPANY}-{YEAR}-{TYPE}` | `CJG-2024-OD` |
+| questions | `Q_{5digits}` | `Q_00001` |
+| master_questions | `{TYPE}_{4digits}` | `OD_0001` |
+
+## Ontology Structure
+
+```
+THEME (대주제)
+└── CONCEPT (핵심 개념)
+    └── ASPECT (측정 측면)
+
+Example:
+경영전략 (THEME)
+├── 비전 (CONCEPT)
+│   ├── 이해도 (ASPECT)
+│   ├── 공감도 (ASPECT)
+│   └── 실천도 (ASPECT)
+└── 전략 (CONCEPT)
+    ├── 명확성 (ASPECT)
+    └── 실행력 (ASPECT)
+```
+
+## Project Structure
+
+```
+c:\Project\MasterDB\
+├── data/                          # Source data
+│   └── Survey Meta Data_251224.xlsx
+├── docs/                          # Documentation
+│   ├── database_schema.md         # DB schema
+│   ├── DATABASE_DESIGN.md         # Reference design
+│   ├── DB_테이블명세서.xlsx
+│   └── meta_data.xlsx
+├── src/                           # Source code
+│   ├── all_category_clustering.py # Phase 0: Clustering
+│   ├── create_verification_excel.py
+│   ├── db/                        # [Phase 1] DB modules
+│   ├── migration/                 # [Phase 1] Migration scripts
+│   └── tagging/                   # [Phase 1] Auto-tagging
+├── db/                            # [Phase 1] SQLite database
+│   └── masterdb.sqlite
+├── results/                       # Output files
+├── all_df_hybrid.pkl              # Cached DataFrame
+├── all_embeddings_hybrid.npy      # Cached embeddings
+├── MasterDB_Implementation_Plan.md
+└── CLAUDE.md
 ```
 
 ## Known Issues
 
-**Hardcoded paths**: All Python scripts contain `os.chdir('c:/Project/CJ_Culture')` pointing to a different directory. This should be refactored to relative paths.
+- **Hardcoded paths**: Scripts contain `os.chdir('c:/Project/CJ_Culture')` - needs refactoring
+- **Encoding**: Some Korean text may have cp949/UTF-8 issues on Windows
 
-## Output Files
+## Next Steps (Phase 1)
 
-| File | Description |
-|------|-------------|
-| `results/Master_Questions.xlsx` | 3,274 representative questions with Question Keys |
-| `results/전체_문항_클러스터링_Hybrid.xlsx` | Full clustering results |
-| `results/전체_분류체계_검증용.xlsx` | 4-sheet verification workbook |
-| `all_df_hybrid.pkl` | Cached DataFrame with classifications |
-| `all_embeddings_hybrid.npy` | Cached embeddings (7343 x 768) |
+1. **Step 1**: Create SQLite schema and migrate data
+2. **Step 2**: Build initial taxonomy from legacy classifications
+3. **Step 3**: Implement auto-tagging system
+4. **Step 4**: Validate with Claude Code queries
